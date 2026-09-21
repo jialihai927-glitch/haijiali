@@ -2,6 +2,7 @@
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   const garden = document.getElementById('garden');
+  const gardenVideo = document.getElementById('gardenVideo');
   const startCard = document.getElementById('startCard');
   const resultCard = document.getElementById('resultCard');
   const startButton = document.getElementById('startButton');
@@ -119,7 +120,7 @@
 
   function flowSettings() {
     const elapsed = GAME_TIME - state.timeLeft;
-    if (elapsed < 10) return { label: '初雨 · 慢', interval: .96, className: '' };
+    if (elapsed < 10) return { label: '初雨 · 缓', interval: .82, className: '' };
     if (elapsed < 20) return { label: '渐密 · 中', interval: .62, className: 'medium' };
     return { label: '盛落 · 快', interval: .34, className: 'fast' };
   }
@@ -215,6 +216,9 @@
     state.basketX = state.targetX = width / 2;
     scoreEl.textContent = '0'; comboEl.textContent = '×1'; updateTimerUI();
     startCard.hidden = true; resultCard.hidden = true; garden.classList.add('playing'); hint.classList.add('visible');
+    gardenVideo.currentTime = 0;
+    const videoPlayback = gardenVideo.play();
+    if (videoPlayback) videoPlayback.catch(() => {});
     setTimeout(() => hint.classList.remove('visible'), 2500);
     tone(420, .12); setTimeout(() => tone(620, .16), 100);
     timerId = setInterval(() => {
@@ -224,13 +228,25 @@
     }, 1000);
   }
 
+  function resultTitleForScore(score) {
+    if (score <= 0) return '桂雨初歇';
+    if (score <= 20) return '桂子初收';
+    if (score <= 40) return '一袖秋香';
+    if (score <= 70) return '满庭清芬';
+    if (score <= 80) return '桂雨盈袖';
+    if (score <= 90) return '金粟满庭';
+    if (score <= 100) return '月桂流芳';
+    if (score <= 110) return '十里桂香';
+    if (score <= 130) return '桂馥兰馨';
+    if (score <= 140) return '蟾宫折桂';
+    return '香飘十里';
+  }
+
   function endGame() {
-    clearInterval(timerId); state.running = false; state.flowers = []; garden.classList.remove('playing');
+    clearInterval(timerId); state.running = false; state.flowers = []; garden.classList.remove('playing'); gardenVideo.pause();
     finalScoreEl.textContent = '0'; bestComboEl.textContent = state.bestCombo;
-    if (state.score >= 60) resultTitleEl.textContent = '十里桂香';
-    else if (state.score >= 30) resultTitleEl.textContent = '满庭清芬';
-    else resultTitleEl.textContent = '一袖秋香';
-    resultCard.hidden = false; animateResultScore(state.score); liveRegion.textContent = `游戏结束，收集了${state.score}缕桂香，最佳连击${state.bestCombo}次。`;
+    resultTitleEl.textContent = resultTitleForScore(state.score);
+    resultCard.hidden = false; animateResultScore(state.score); liveRegion.textContent = `游戏结束，收集了${state.score}缕桂香，最高连香${state.bestCombo}次。`;
     tone(620, .16); setTimeout(() => tone(820, .28), 150);
     restartButton.focus();
   }
