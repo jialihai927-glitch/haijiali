@@ -43,6 +43,7 @@
     if (state.muted) return;
     try {
       audio ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === 'suspended') audio.resume();
       const osc = audio.createOscillator();
       const gain = audio.createGain();
       osc.type = type; osc.frequency.value = freq;
@@ -53,23 +54,32 @@
     } catch (_) {}
   }
 
-  function playAmbientNote() {
+  async function playAmbientNote() {
     if (state.muted || !state.running) return;
-    const melody = [293.66, 392, 440, 329.63, 493.88, 392, 329.63, 440, 587.33, 493.88, 392, null];
+    const melody = [220, 293.66, 329.63, 246.94, 392, 329.63, 293.66, 440, 392, 329.63, 293.66, null];
     const freq = melody[musicStep++ % melody.length];
     if (!freq) return;
     try {
       audio ||= new (window.AudioContext || window.webkitAudioContext)();
-      if (audio.state === 'suspended') audio.resume();
+      if (audio.state === 'suspended') await audio.resume();
       const now = audio.currentTime;
       const osc = audio.createOscillator();
+      const shimmer = audio.createOscillator();
       const gain = audio.createGain();
-      osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now);
+      const shimmerGain = audio.createGain();
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, now);
+      shimmer.type = 'sine'; shimmer.frequency.setValueAtTime(freq * 2, now);
       gain.gain.setValueAtTime(.0001, now);
-      gain.gain.linearRampToValueAtTime(.012, now + .45);
-      gain.gain.exponentialRampToValueAtTime(.0001, now + 2.6);
+      gain.gain.linearRampToValueAtTime(.04, now + .08);
+      gain.gain.exponentialRampToValueAtTime(.012, now + .75);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + 2.45);
+      shimmerGain.gain.setValueAtTime(.0001, now);
+      shimmerGain.gain.linearRampToValueAtTime(.009, now + .12);
+      shimmerGain.gain.exponentialRampToValueAtTime(.0001, now + 1.8);
       osc.connect(gain); gain.connect(audio.destination);
-      osc.start(now); osc.stop(now + 2.7);
+      shimmer.connect(shimmerGain); shimmerGain.connect(audio.destination);
+      osc.start(now); shimmer.start(now);
+      osc.stop(now + 2.5); shimmer.stop(now + 1.9);
     } catch (_) {}
   }
 
@@ -245,11 +255,10 @@
     spawnFlower({ type: 'gold', x: width / 2, y: height * .62, vy: 180 });
     spawnFlower({ type: 'gold', x: width * .32, y: height * .42, vy: 155 });
     spawnFlower({ type: 'gold', x: width * .7, y: height * .24, vy: 145 });
-    startMusic();
     scoreEl.textContent = '0'; comboEl.textContent = '×1'; updateTimerUI();
     startCard.hidden = true; resultCard.hidden = true; garden.classList.add('playing'); hint.classList.add('visible');
     setTimeout(() => hint.classList.remove('visible'), 2500);
-    tone(420, .12); setTimeout(() => tone(620, .16), 100);
+    tone(420, .12); setTimeout(() => tone(620, .16), 100); setTimeout(() => { if (state.running) startMusic(); }, 320);
     timerId = setInterval(() => {
       state.timeLeft--; updateTimerUI(); animateStat(timeEl, 'stat-tick');
       if (state.timeLeft <= 0) endGame();
