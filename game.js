@@ -56,30 +56,46 @@
 
   async function playAmbientNote() {
     if (state.muted || !state.running) return;
-    const melody = [220, 293.66, 329.63, 246.94, 392, 329.63, 293.66, 440, 392, 329.63, 293.66, null];
+    const melody = [293.66, 369.99, 440, 329.63, 293.66, 246.94, null, 293.66, 329.63, 369.99, 440, 369.99, 329.63, null, 493.88, 440, 369.99, 329.63, 293.66, null];
     const freq = melody[musicStep++ % melody.length];
     if (!freq) return;
     try {
       audio ||= new (window.AudioContext || window.webkitAudioContext)();
       if (audio.state === 'suspended') await audio.resume();
       const now = audio.currentTime;
-      const osc = audio.createOscillator();
-      const shimmer = audio.createOscillator();
-      const gain = audio.createGain();
-      const shimmerGain = audio.createGain();
-      osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, now);
-      shimmer.type = 'sine'; shimmer.frequency.setValueAtTime(freq * 2, now);
-      gain.gain.setValueAtTime(.0001, now);
-      gain.gain.linearRampToValueAtTime(.04, now + .08);
-      gain.gain.exponentialRampToValueAtTime(.012, now + .75);
-      gain.gain.exponentialRampToValueAtTime(.0001, now + 2.45);
-      shimmerGain.gain.setValueAtTime(.0001, now);
-      shimmerGain.gain.linearRampToValueAtTime(.009, now + .12);
-      shimmerGain.gain.exponentialRampToValueAtTime(.0001, now + 1.8);
-      osc.connect(gain); gain.connect(audio.destination);
-      shimmer.connect(shimmerGain); shimmerGain.connect(audio.destination);
-      osc.start(now); shimmer.start(now);
-      osc.stop(now + 2.5); shimmer.stop(now + 1.9);
+      const body = audio.createOscillator();
+      const overtone = audio.createOscillator();
+      const bodyGain = audio.createGain();
+      const overtoneGain = audio.createGain();
+      const warmth = audio.createBiquadFilter();
+      body.type = 'triangle'; overtone.type = 'sine';
+      body.frequency.setValueAtTime(freq * .985, now);
+      body.frequency.exponentialRampToValueAtTime(freq, now + .14);
+      overtone.frequency.setValueAtTime(freq * 2.01, now);
+      bodyGain.gain.setValueAtTime(.0001, now);
+      bodyGain.gain.exponentialRampToValueAtTime(.047, now + .018);
+      bodyGain.gain.exponentialRampToValueAtTime(.009, now + .72);
+      bodyGain.gain.exponentialRampToValueAtTime(.0001, now + 2.7);
+      overtoneGain.gain.setValueAtTime(.0001, now);
+      overtoneGain.gain.exponentialRampToValueAtTime(.014, now + .012);
+      overtoneGain.gain.exponentialRampToValueAtTime(.0001, now + 1.25);
+      warmth.type = 'lowpass'; warmth.frequency.value = 2100; warmth.Q.value = .7;
+      body.connect(bodyGain); overtone.connect(overtoneGain);
+      bodyGain.connect(warmth); overtoneGain.connect(warmth); warmth.connect(audio.destination);
+
+      const attackLength = Math.floor(audio.sampleRate * .035);
+      const attackBuffer = audio.createBuffer(1, attackLength, audio.sampleRate);
+      const attackData = attackBuffer.getChannelData(0);
+      for (let i = 0; i < attackLength; i++) attackData[i] = (Math.random() * 2 - 1) * (1 - i / attackLength);
+      const attack = audio.createBufferSource();
+      const attackFilter = audio.createBiquadFilter();
+      const attackGain = audio.createGain();
+      attack.buffer = attackBuffer;
+      attackFilter.type = 'bandpass'; attackFilter.frequency.value = Math.min(2400, freq * 4); attackFilter.Q.value = 1.1;
+      attackGain.gain.setValueAtTime(.016, now); attackGain.gain.exponentialRampToValueAtTime(.0001, now + .09);
+      attack.connect(attackFilter); attackFilter.connect(attackGain); attackGain.connect(audio.destination);
+      body.start(now); overtone.start(now); attack.start(now);
+      body.stop(now + 2.75); overtone.stop(now + 1.3); attack.stop(now + .1);
     } catch (_) {}
   }
 
@@ -89,7 +105,7 @@
 
   function startMusic() {
     stopMusic(); musicStep = 0; playAmbientNote();
-    musicTimer = setInterval(playAmbientNote, 1650);
+    musicTimer = setInterval(playAmbientNote, 1250);
   }
 
   function animateStat(element, className) {
