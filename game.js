@@ -2,7 +2,6 @@
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   const garden = document.getElementById('garden');
-  const gardenVideo = document.getElementById('gardenVideo');
   const startCard = document.getElementById('startCard');
   const resultCard = document.getElementById('resultCard');
   const startButton = document.getElementById('startButton');
@@ -216,9 +215,6 @@
     state.basketX = state.targetX = width / 2;
     scoreEl.textContent = '0'; comboEl.textContent = '×1'; updateTimerUI();
     startCard.hidden = true; resultCard.hidden = true; garden.classList.add('playing'); hint.classList.add('visible');
-    gardenVideo.currentTime = 0;
-    const videoPlayback = gardenVideo.play();
-    if (videoPlayback) videoPlayback.catch(() => {});
     setTimeout(() => hint.classList.remove('visible'), 2500);
     tone(420, .12); setTimeout(() => tone(620, .16), 100);
     timerId = setInterval(() => {
@@ -243,7 +239,7 @@
   }
 
   function endGame() {
-    clearInterval(timerId); state.running = false; state.flowers = []; garden.classList.remove('playing'); gardenVideo.pause();
+    clearInterval(timerId); state.running = false; state.flowers = []; garden.classList.remove('playing');
     finalScoreEl.textContent = '0'; bestComboEl.textContent = state.bestCombo;
     resultTitleEl.textContent = resultTitleForScore(state.score);
     resultCard.hidden = false; animateResultScore(state.score); liveRegion.textContent = `游戏结束，收集了${state.score}缕桂香，最高连香${state.bestCombo}次。`;
