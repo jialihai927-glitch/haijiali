@@ -26,7 +26,7 @@
     timeLeft: GAME_TIME, lastTime: 0, spawnTimer: 0, muted: false,
     particles: [], notices: [], flowers: [], keys: new Set(), basketX: 0, targetX: 0
   };
-  let width = 0, height = 0, dpr = 1, timerId = null, audio = null;
+  let width = 0, height = 0, dpr = 1, timerId = null, audio = null, musicTimer = null, musicStep = 0;
 
   function resize() {
     const rect = garden.getBoundingClientRect();
@@ -51,6 +51,35 @@
       osc.connect(gain); gain.connect(audio.destination);
       osc.start(); osc.stop(audio.currentTime + duration);
     } catch (_) {}
+  }
+
+  function playAmbientNote() {
+    if (state.muted || !state.running) return;
+    const melody = [293.66, 392, 440, 329.63, 493.88, 392, 329.63, 440, 587.33, 493.88, 392, null];
+    const freq = melody[musicStep++ % melody.length];
+    if (!freq) return;
+    try {
+      audio ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === 'suspended') audio.resume();
+      const now = audio.currentTime;
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.linearRampToValueAtTime(.012, now + .45);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + 2.6);
+      osc.connect(gain); gain.connect(audio.destination);
+      osc.start(now); osc.stop(now + 2.7);
+    } catch (_) {}
+  }
+
+  function stopMusic() {
+    clearInterval(musicTimer); musicTimer = null;
+  }
+
+  function startMusic() {
+    stopMusic(); musicStep = 0; playAmbientNote();
+    musicTimer = setInterval(playAmbientNote, 1650);
   }
 
   function animateStat(element, className) {
@@ -216,6 +245,7 @@
     spawnFlower({ type: 'gold', x: width / 2, y: height * .62, vy: 180 });
     spawnFlower({ type: 'gold', x: width * .32, y: height * .42, vy: 155 });
     spawnFlower({ type: 'gold', x: width * .7, y: height * .24, vy: 145 });
+    startMusic();
     scoreEl.textContent = '0'; comboEl.textContent = '×1'; updateTimerUI();
     startCard.hidden = true; resultCard.hidden = true; garden.classList.add('playing'); hint.classList.add('visible');
     setTimeout(() => hint.classList.remove('visible'), 2500);
@@ -242,7 +272,7 @@
   }
 
   function endGame() {
-    clearInterval(timerId); state.running = false; state.flowers = []; garden.classList.remove('playing');
+    clearInterval(timerId); stopMusic(); state.running = false; state.flowers = []; garden.classList.remove('playing');
     finalScoreEl.textContent = '0'; bestComboEl.textContent = state.bestCombo;
     resultTitleEl.textContent = resultTitleForScore(state.score);
     resultCard.hidden = false; animateResultScore(state.score); liveRegion.textContent = `游戏结束，收集了${state.score}缕桂香，最高连香${state.bestCombo}次。`;
@@ -269,6 +299,7 @@
   soundButton.addEventListener('click', () => {
     state.muted = !state.muted; soundButton.setAttribute('aria-pressed', String(!state.muted));
     soundButton.setAttribute('aria-label', state.muted ? '打开声音' : '关闭声音'); soundButton.textContent = state.muted ? '♩' : '♪';
+    if (state.muted) stopMusic(); else if (state.running) startMusic();
   });
   window.addEventListener('resize', resize); resize(); requestAnimationFrame(frame);
 })();
