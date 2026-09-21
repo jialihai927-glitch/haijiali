@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#07182a">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; font-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="description" content="在月下接住纷飞的桂花，酿一壶秋日桂露。">
   <title>桂雨集 · 月下接花</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect rx='14' width='64' height='64' fill='%2307182a'/%3E%3Cg fill='%23f6bd45'%3E%3Cellipse cx='32' cy='18' rx='8' ry='14'/%3E%3Cellipse cx='32' cy='46' rx='8' ry='14'/%3E%3Cellipse cx='18' cy='32' rx='14' ry='8'/%3E%3Cellipse cx='46' cy='32' rx='14' ry='8'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23fff1b8'/%3E%3C/g%3E%3C/svg%3E">
@@ -32,11 +32,11 @@
       </div>
       <div class="stats" aria-live="polite">
         <div><span>桂香</span><strong id="score">0</strong></div>
-        <div><span>连枝</span><strong id="combo">×1</strong></div>
+        <div><span>连香</span><strong id="combo">×1</strong></div>
         <div class="time-stat" id="timeStat" role="timer" aria-label="倒计时，还剩45秒">
           <span class="moon-icon" aria-hidden="true"></span>
           <strong id="time">45</strong>
-          <small id="pace">初雨 · 慢</small>
+          <small id="pace">初雨 · 缓</small>
         </div>
       </div>
       <button class="sound-button" id="soundButton" type="button" aria-pressed="true" aria-label="关闭声音">♪</button>
@@ -44,6 +44,9 @@
 
     <section class="garden" id="garden" aria-label="游戏区域：移动花篮接住落下的桂花">
       <div class="countdown-track" aria-hidden="true"><span id="countdownFill"></span></div>
+      <video class="garden-video" id="gardenVideo" muted loop playsinline preload="metadata" poster="./osmanthus-garden.jpg" aria-hidden="true" tabindex="-1">
+        <source src="./gui-yu-ji-bg.mp4" type="video/mp4">
+      </video>
       <canvas id="gameCanvas"></canvas>
       <div class="moon-haze" aria-hidden="true"></div>
       <div class="hint" id="hint"><span>移动</span>花篮，接住桂花</div>
@@ -76,7 +79,7 @@
           <path class="tea-bowl" d="M26 53 C28 91 45 106 70 108 C95 106 112 91 114 53" />
           <path class="tea-saucer" d="M39 115 Q70 121 101 115" />
         </svg>
-        <h2 id="resultTitle">十里桂香</h2>
+        <h2 id="resultTitle">桂雨初歇</h2>
         <p class="result-summary" id="resultLine">收集了 <strong id="finalScore">0</strong> 缕桂香，最高连香 ×<b id="bestCombo">0</b>。</p>
         <button class="primary-button" id="restartButton" type="button"><span>再沏一壶</span><small>按 R 重新开始</small></button>
       </section>
