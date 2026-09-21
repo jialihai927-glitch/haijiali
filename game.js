@@ -24,7 +24,7 @@
   const state = {
     running: false, score: 0, combo: 0, bestCombo: 0, moonCount: 0,
     timeLeft: GAME_TIME, lastTime: 0, spawnTimer: 0, muted: false,
-    particles: [], notices: [], flowers: [], keys: new Set(), basketX: 0, targetX: 0
+    particles: [], notices: [], flowers: [], fireflies: [], fireflyTimer: 3, keys: new Set(), basketX: 0, targetX: 0
   };
   let width = 0, height = 0, dpr = 1, timerId = null, audio = null, musicTimer = null, musicStep = 0;
 
@@ -173,6 +173,23 @@
     state.notices.push({ x, y, text, color, life: 1.05 });
   }
 
+  function spawnFireflies() {
+    const count = 2 + Math.floor(Math.random() * 3);
+    const onLeftBank = Math.random() < .5;
+    for (let i = 0; i < count; i++) {
+      const nearWater = Math.random() < .35;
+      const x = nearWater
+        ? width * (.22 + Math.random() * .56)
+        : onLeftBank ? width * (.04 + Math.random() * .24) : width * (.72 + Math.random() * .24);
+      const y = nearWater ? height * (.7 + Math.random() * .18) : height * (.46 + Math.random() * .34);
+      const life = 5 + Math.random() * 3;
+      state.fireflies.push({
+        x, y, baseX: x, vx: (Math.random() - .5) * 7, vy: -3 - Math.random() * 5,
+        phase: Math.random() * Math.PI * 2, life, maxLife: life, size: 1.2 + Math.random() * 1.1
+      });
+    }
+  }
+
   function flowSettings() {
     const elapsed = GAME_TIME - state.timeLeft;
     if (elapsed < 10) return { label: '初雨 · 缓', interval: .68, className: '' };
@@ -201,6 +218,12 @@
       spawnFlower();
       const flow = flowSettings();
       state.spawnTimer = flow.interval * (.82 + Math.random() * .38);
+    }
+
+    state.fireflyTimer -= dt;
+    if (state.fireflyTimer <= 0) {
+      spawnFireflies();
+      state.fireflyTimer = 5.5 + Math.random() * 4.5;
     }
 
     const basketY = height - 72;
@@ -238,10 +261,20 @@
       const n = state.notices[i]; n.life -= dt; n.y -= 34 * dt;
       if (n.life <= 0) state.notices.splice(i, 1);
     }
+    for (let i = state.fireflies.length - 1; i >= 0; i--) {
+      const f = state.fireflies[i]; f.life -= dt; f.y += f.vy * dt; f.x += f.vx * dt + Math.sin(f.phase + f.life * 1.8) * 5 * dt;
+      if (f.life <= 0) state.fireflies.splice(i, 1);
+    }
   }
 
   function draw() {
     ctx.clearRect(0, 0, width, height);
+    for (const f of state.fireflies) {
+      const fade = Math.min(1, (f.maxLife - f.life) * 1.1, f.life * .8);
+      const pulse = .36 + .28 * (1 + Math.sin(f.phase + f.life * 3.2)) / 2;
+      ctx.save(); ctx.globalAlpha = fade * pulse; ctx.fillStyle = '#ffd36a'; ctx.shadowColor = '#ffc84f'; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
     for (const f of state.flowers) drawFlower(f);
     for (const p of state.particles) { ctx.save(); ctx.globalAlpha = Math.min(1, p.life * 1.7); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
     for (const n of state.notices) { ctx.save(); ctx.globalAlpha = Math.min(1, n.life * 1.8); ctx.fillStyle = n.color; ctx.font = '700 18px sans-serif'; ctx.textAlign = 'center'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 6; ctx.fillText(n.text, n.x, n.y); ctx.restore(); }
@@ -267,7 +300,7 @@
 
   function startGame() {
     clearInterval(timerId);
-    Object.assign(state, { running: true, score: 0, combo: 0, bestCombo: 0, moonCount: 0, timeLeft: GAME_TIME, spawnTimer: .2, flowers: [], particles: [], notices: [] });
+    Object.assign(state, { running: true, score: 0, combo: 0, bestCombo: 0, moonCount: 0, timeLeft: GAME_TIME, spawnTimer: .2, flowers: [], particles: [], notices: [], fireflies: [], fireflyTimer: 3 });
     state.basketX = state.targetX = width / 2;
     spawnFlower({ type: 'gold', x: width / 2, y: height * .62, vy: 180 });
     spawnFlower({ type: 'gold', x: width * .32, y: height * .42, vy: 155 });
@@ -288,9 +321,7 @@
     if (score <= 20) return '桂子初收';
     if (score <= 40) return '一袖秋香';
     if (score <= 70) return '满庭清芬';
-    if (score <= 80) return '桂雨盈袖';
-    if (score <= 90) return '金粟满庭';
-    if (score <= 100) return '月桂流芳';
+    if (score <= 90) return '桂雨盈袖';
     if (score <= 110) return '十里桂香';
     if (score <= 130) return '桂馥兰馨';
     if (score <= 140) return '蟾宫折桂';
@@ -298,7 +329,7 @@
   }
 
   function endGame() {
-    clearInterval(timerId); stopMusic(); state.running = false; state.flowers = []; garden.classList.remove('playing');
+    clearInterval(timerId); stopMusic(); state.running = false; state.flowers = []; state.fireflies = []; garden.classList.remove('playing');
     finalScoreEl.textContent = '0'; bestComboEl.textContent = state.bestCombo;
     resultTitleEl.textContent = resultTitleForScore(state.score);
     resultCard.hidden = false; animateResultScore(state.score); liveRegion.textContent = `游戏结束，收集了${state.score}缕桂香，最高连香${state.bestCombo}次。`;
