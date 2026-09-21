@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07182a">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="在月下接住纷飞的桂花，酿一壶秋日桂露。">
+  <title>桂雨集 · 月下接花</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect rx='14' width='64' height='64' fill='%2307182a'/%3E%3Cg fill='%23f6bd45'%3E%3Cellipse cx='32' cy='18' rx='8' ry='14'/%3E%3Cellipse cx='32' cy='46' rx='8' ry='14'/%3E%3Cellipse cx='18' cy='32' rx='14' ry='8'/%3E%3Cellipse cx='46' cy='32' rx='14' ry='8'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23fff1b8'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="./osmanthus-garden.jpg">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="game-shell" aria-label="桂雨集小游戏">
+    <header class="game-bar">
+      <div class="brand" aria-label="游戏名称">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="presentation">
+            <g class="osmanthus-petals">
+              <ellipse cx="24" cy="13" rx="7.2" ry="11"></ellipse>
+              <ellipse cx="35" cy="24" rx="11" ry="7.2"></ellipse>
+              <ellipse cx="24" cy="35" rx="7.2" ry="11"></ellipse>
+              <ellipse cx="13" cy="24" rx="11" ry="7.2"></ellipse>
+            </g>
+            <circle class="osmanthus-heart" cx="24" cy="24" r="5.2"></circle>
+            <circle class="osmanthus-dot" cx="24" cy="24" r="1.7"></circle>
+          </svg>
+        </span>
+        <div><strong>桂雨集</strong><span>月下接花</span></div>
+      </div>
+      <div class="stats" aria-live="polite">
+        <div><span>桂香</span><strong id="score">0</strong></div>
+        <div><span>连枝</span><strong id="combo">×1</strong></div>
+        <div class="time-stat" id="timeStat" role="timer" aria-label="倒计时，还剩45秒">
+          <span class="moon-icon" aria-hidden="true"></span>
+          <strong id="time">45</strong>
+          <small id="pace">初雨 · 慢</small>
+        </div>
+      </div>
+      <button class="sound-button" id="soundButton" type="button" aria-pressed="true" aria-label="关闭声音">♪</button>
+    </header>
+
+    <section class="garden" id="garden" aria-label="游戏区域：移动花篮接住落下的桂花">
+      <div class="countdown-track" aria-hidden="true"><span id="countdownFill"></span></div>
+      <canvas id="gameCanvas"></canvas>
+      <div class="moon-haze" aria-hidden="true"></div>
+      <div class="hint" id="hint"><span>移动</span>花篮，接住桂花</div>
+
+      <section class="start-card" id="startCard" aria-labelledby="gameTitle">
+        <div class="seal" aria-hidden="true">秋</div>
+        <p class="eyebrow">今夜桂香正好</p>
+        <h1 id="gameTitle">接一场<br><em>月下桂雨</em></h1>
+        <p class="intro"><strong>玩法：</strong>移动花篮接住掉落物，在倒计时结束前收集尽量多的桂香。桂雨会由疏到密；枯叶会污染 1 缕桂香并打断连击，月亮则会延长 1 秒。</p>
+        <button class="primary-button" id="startButton" type="button"><span>开始接花</span><small>空格键也可开始</small></button>
+        <div class="legend" aria-label="计分说明">
+          <span><i class="flower-icon gold"></i>金桂 +1</span>
+          <span><i class="flower-icon big"></i>大桂花 +2</span>
+          <span><i class="flower-icon white"></i>白色大桂花 +4</span>
+          <span><i class="moon-drop-icon"></i>月亮 +1 秒</span>
+          <span><i class="leaf-icon"></i>枯叶 −1 并断连击</span>
+        </div>
+      </section>
+
+      <section class="result-card" id="resultCard" hidden aria-labelledby="resultTitle">
+        <span class="result-flower result-flower-one" aria-hidden="true">✦</span>
+        <span class="result-flower result-flower-two" aria-hidden="true">✦</span>
+        <p class="eyebrow">今夜收获</p>
+        <svg class="harvest-tea" viewBox="0 0 140 122" aria-hidden="true">
+          <path class="tea-steam tea-steam-one" d="M50 44 C40 35 59 28 49 16 C43 9 48 5 53 1" />
+          <path class="tea-steam tea-steam-two" d="M70 42 C59 31 79 25 69 13 C64 7 69 3 74 0" />
+          <path class="tea-steam tea-steam-three" d="M90 44 C80 35 99 28 89 16 C84 10 88 6 94 2" />
+          <path class="tea-rim" d="M27 53 Q70 62 113 53" />
+          <path class="tea-surface" d="M35 57 Q70 63 105 57" />
+          <path class="tea-bowl" d="M26 53 C28 91 45 106 70 108 C95 106 112 91 114 53" />
+          <path class="tea-saucer" d="M39 115 Q70 121 101 115" />
+        </svg>
+        <h2 id="resultTitle">十里桂香</h2>
+        <p class="result-summary" id="resultLine">收集了 <strong id="finalScore">0</strong> 缕桂香，最高连香 ×<b id="bestCombo">0</b>。</p>
+        <button class="primary-button" id="restartButton" type="button"><span>再沏一壶</span><small>按 R 重新开始</small></button>
+      </section>
+
+      <div class="controls-note" aria-hidden="true">← → / A D / 鼠标 / 触摸</div>
+      <div class="live-region" id="liveRegion" aria-live="assertive" aria-atomic="true"></div>
+    </section>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>
+
