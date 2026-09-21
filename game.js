@@ -116,9 +116,10 @@
 
   function spawnFlower(overrides = {}) {
     const roll = Math.random();
-    const type = overrides.type || (roll < .09 ? 'leaf' : roll < .16 ? 'moon' : roll < .28 ? 'white' : roll < .42 ? 'big' : 'gold');
-    const size = type === 'white' ? 18 + Math.random() * 4 : type === 'moon' ? 12 : type === 'big' ? 16 + Math.random() * 4 : type === 'leaf' ? 12 : 8 + Math.random() * 4;
     const elapsed = GAME_TIME - state.timeLeft;
+    const leafChance = elapsed < 10 ? .06 : elapsed < 20 ? .12 : .24;
+    const type = overrides.type || (roll < leafChance ? 'leaf' : roll < leafChance + .07 ? 'moon' : roll < leafChance + .19 ? 'white' : roll < leafChance + .33 ? 'big' : 'gold');
+    const size = type === 'white' ? 18 + Math.random() * 4 : type === 'moon' ? 12 : type === 'big' ? 16 + Math.random() * 4 : type === 'leaf' ? 12 : 8 + Math.random() * 4;
     const speedRange = elapsed < 10 ? [96, 124] : elapsed < 20 ? [108, 138] : [128, 168];
     state.flowers.push({
       x: overrides.x ?? 28 + Math.random() * (width - 56), y: overrides.y ?? -24, size, type,
