@@ -325,7 +325,16 @@
     if (score <= 110) return '十里桂香';
     if (score <= 130) return '桂馥兰馨';
     if (score <= 140) return '蟾宫折桂';
-    return '香飘十里';
+    if (score <= 170) return '桂子飘香';
+    if (score <= 200) return '兰薰桂馥';
+    if (score <= 230) return '月桂流芳';
+    if (score <= 260) return '桂影扶疏';
+    if (score <= 290) return '金粟满庭';
+    if (score <= 320) return '折桂攀蟾';
+    if (score <= 350) return '桂冠群芳';
+    if (score <= 380) return '天香满城';
+    if (score <= 420) return '月殿折桂';
+    return '桂魄流光';
   }
 
   function endGame() {
