@@ -59,15 +59,15 @@
     element.classList.add(className);
   }
 
-  function spawnFlower() {
+  function spawnFlower(overrides = {}) {
     const roll = Math.random();
-    const type = roll < .09 ? 'leaf' : roll < .16 ? 'moon' : roll < .28 ? 'white' : roll < .42 ? 'big' : 'gold';
+    const type = overrides.type || (roll < .09 ? 'leaf' : roll < .16 ? 'moon' : roll < .28 ? 'white' : roll < .42 ? 'big' : 'gold');
     const size = type === 'white' ? 18 + Math.random() * 4 : type === 'moon' ? 12 : type === 'big' ? 16 + Math.random() * 4 : type === 'leaf' ? 12 : 8 + Math.random() * 4;
     const elapsed = GAME_TIME - state.timeLeft;
-    const speedRange = elapsed < 10 ? [52, 72] : elapsed < 20 ? [78, 108] : [112, 158];
+    const speedRange = elapsed < 10 ? [96, 124] : elapsed < 20 ? [108, 138] : [128, 168];
     state.flowers.push({
-      x: 28 + Math.random() * (width - 56), y: -24, size, type,
-      vy: speedRange[0] + Math.random() * (speedRange[1] - speedRange[0]),
+      x: overrides.x ?? 28 + Math.random() * (width - 56), y: overrides.y ?? -24, size, type,
+      vy: overrides.vy ?? speedRange[0] + Math.random() * (speedRange[1] - speedRange[0]),
       drift: (Math.random() - .5) * 38, phase: Math.random() * Math.PI * 2,
       rot: Math.random() * Math.PI * 2, spin: (Math.random() - .5) * 2.2
     });
@@ -119,7 +119,7 @@
 
   function flowSettings() {
     const elapsed = GAME_TIME - state.timeLeft;
-    if (elapsed < 10) return { label: '初雨 · 缓', interval: .82, className: '' };
+    if (elapsed < 10) return { label: '初雨 · 缓', interval: .68, className: '' };
     if (elapsed < 20) return { label: '渐密 · 中', interval: .62, className: 'medium' };
     return { label: '盛落 · 快', interval: .34, className: 'fast' };
   }
@@ -211,8 +211,11 @@
 
   function startGame() {
     clearInterval(timerId);
-    Object.assign(state, { running: true, score: 0, combo: 0, bestCombo: 0, moonCount: 0, timeLeft: GAME_TIME, spawnTimer: .5, flowers: [], particles: [], notices: [] });
+    Object.assign(state, { running: true, score: 0, combo: 0, bestCombo: 0, moonCount: 0, timeLeft: GAME_TIME, spawnTimer: .2, flowers: [], particles: [], notices: [] });
     state.basketX = state.targetX = width / 2;
+    spawnFlower({ type: 'gold', x: width / 2, y: height * .62, vy: 180 });
+    spawnFlower({ type: 'gold', x: width * .32, y: height * .42, vy: 155 });
+    spawnFlower({ type: 'gold', x: width * .7, y: height * .24, vy: 145 });
     scoreEl.textContent = '0'; comboEl.textContent = '×1'; updateTimerUI();
     startCard.hidden = true; resultCard.hidden = true; garden.classList.add('playing'); hint.classList.add('visible');
     setTimeout(() => hint.classList.remove('visible'), 2500);
